@@ -21,7 +21,7 @@ uberzahl modexp(uberzahl base, uberzahl exp, uberzahl n);
 //returns next power of 2.
 uberzahl next_power(uberzahl n);
 
-uberzahl montgomery_reduction(const uberzahl & T, const uberzahl & M, const uberzahl & Mprime, const smallType & Rbits, const uberzahl & R);
+uberzahl montgomery_reduction(const uberzahl & T, const uberzahl  & M, const uberzahl  & Mprime, const smallType & Rbits, const uberzahl & R);
 
 //we don't have to bother with making sure that gcd(R,M) == 1 since M is odd.
 uberzahl modexp_mm(uberzahl base, uberzahl exp, uberzahl M);

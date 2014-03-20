@@ -20,18 +20,16 @@ uberzahl modexp(uberzahl base, uberzahl exp, uberzahl n){
 
 //returns next power of 2.
 uberzahl next_power(uberzahl n){
-	return 1 << (n-1).bitLength();
+	uberzahl retval(1);
+	return retval << (n-1).bitLength();
 }
 
-uberzahl montgomery_reduction(const uberzahl & T, const uberzahl & M, const uberzahl & Mprime, const smallType & Rbits, const uberzahl & R){
-	cout << "REDUCTION_BEGIN\n";
+uberzahl montgomery_reduction(const uberzahl & T, const uberzahl  & M, const uberzahl  & Mprime, const smallType & Rbits, const uberzahl & R){
 	uberzahl m, t;
 	m = (T * Mprime) & (R - 1); //bitwise AND ftw.
 	t = (T + m*M) >> (Rbits-1); //forget divisions, use bit-shift since it's power of 2
-
 	if(t >= M)
 		t = t -  M;
-	cout << "REDUCTION_END\n";
 	return t;
 }
 
@@ -44,7 +42,6 @@ uberzahl modexp_mm(uberzahl base, uberzahl exp, uberzahl M){
 	Rbits = R.bitLength();
 	Mprime = (R-M.inverse(R));
 
-	//uberzahl z;
 	uberzahl z("1");
 	uberzahl t("2");
 	uberzahl Rsq = modexp(R,t,M);
@@ -55,24 +52,21 @@ uberzahl modexp_mm(uberzahl base, uberzahl exp, uberzahl M){
 	//assert(base * Rsq < M*R);
 
 	//According to Piazza post we don't even need to calculate the residues with mod
-	//base = montgomery_reduction(base * Rsq, M, Mprime, Rbits, R);
-	base = base * R % M;
+	base = montgomery_reduction(base * Rsq, M, Mprime, Rbits, R);
+	//base = base * R % M;
 
 	mediumType i = exp.bitLength() - 1;
-	cout << i << endl;
+
+
 	while(i >= 0) {
-		cout << "BEFORE_A\n";
+
 		z = montgomery_reduction(z * z, M, Mprime, Rbits, R);
-		cout << "AFTER_A\n";
 		if(exp.bit(i) == 1){
-			cout << "BEFORE_B\n";
 			z = montgomery_reduction(z * base , M, Mprime, Rbits, R);
-			cout << "AFTER_B\n";
 		}
 		if(i == 0)
 			break;
 		i -= 1;
-		cout << i << endl;
 	}
 	return montgomery_reduction(z, M, Mprime, Rbits, R);
 }
