@@ -24,12 +24,14 @@ uberzahl next_power(uberzahl n){
 }
 
 uberzahl montgomery_reduction(const uberzahl & T, const uberzahl & M, const uberzahl & Mprime, const smallType & Rbits, const uberzahl & R){
+	cout << "REDUCTION_BEGIN\n";
 	uberzahl m, t;
 	m = (T * Mprime) & (R - 1); //bitwise AND ftw.
 	t = (T + m*M) >> (Rbits-1); //forget divisions, use bit-shift since it's power of 2
 
 	if(t >= M)
 		t = t -  M;
+	cout << "REDUCTION_END\n";
 	return t;
 }
 
@@ -47,24 +49,30 @@ uberzahl modexp_mm(uberzahl base, uberzahl exp, uberzahl M){
 	uberzahl t("2");
 	uberzahl Rsq = modexp(R,t,M);
 
-	mediumType i = exp.bitLength() - 1;
-
 	//convert into Montgomery space
 
 	z = R % M;
-	assert(base * Rsq < M*R);
+	//assert(base * Rsq < M*R);
 
 	//According to Piazza post we don't even need to calculate the residues with mod
-	base = montgomery_reduction(base * Rsq, M, Mprime, Rbits, R);
-	//base = base * R % M;
+	//base = montgomery_reduction(base * Rsq, M, Mprime, Rbits, R);
+	base = base * R % M;
 
+	mediumType i = exp.bitLength() - 1;
+	cout << i << endl;
 	while(i >= 0) {
+		cout << "BEFORE_A\n";
 		z = montgomery_reduction(z * z, M, Mprime, Rbits, R);
-		if(exp.bit(i) == 1)
+		cout << "AFTER_A\n";
+		if(exp.bit(i) == 1){
+			cout << "BEFORE_B\n";
 			z = montgomery_reduction(z * base , M, Mprime, Rbits, R);
+			cout << "AFTER_B\n";
+		}
 		if(i == 0)
 			break;
 		i -= 1;
+		cout << i << endl;
 	}
 	return montgomery_reduction(z, M, Mprime, Rbits, R);
 }
@@ -85,4 +93,45 @@ uberzahl modexp_crt(uberzahl base, uberzahl exp, uberzahl p, uberzahl q){
 
 uberzahl modexp_mm_crt(uberzahl base, uberzahl exp, uberzahl p, uberzahl q){
 	return ( crt_helper(MONTGOMERY,base,exp,p,q) + crt_helper(MONTGOMERY, base, exp, q, p ) ) % (p * q);
+}
+
+uberzahl gen_prime_k(mediumType bits, unsigned int accuracy){
+	uberzahl retval;
+	do{
+		retval.random(bits);
+	}while(!rabinmiller(retval,accuracy));
+	
+	return retval;
+}
+
+uberzahl rand_n(mediumType bits){
+	uberzahl retval;
+	retval.random(bits);
+	return retval;
+}
+
+timer::timer(){
+	initialized = false;
+}
+
+timer::~timer(){
+}
+
+void timer::start(){
+	initialized = true;
+	t1  = high_resolution_clock::now();
+}
+
+void timer::stop(){
+	t2 = high_resolution_clock::now();
+}
+
+void timer::reset(){
+	initialized = false;
+}
+
+double timer::get_time(){
+	if(!initialized)
+		return 0;
+	return (duration_cast<duration< double > > (t2 - t1)).count();
 }

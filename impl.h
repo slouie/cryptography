@@ -3,7 +3,10 @@
 
 #include "uberzahl/uberzahl.h"
 #include <cassert>
+#include <ratio>
+#include <chrono>
 
+using namespace std::chrono;
 using namespace std;
 
 #define CLASSIC 0
@@ -28,5 +31,26 @@ uberzahl crt_helper(bool type, uberzahl base, uberzahl exp, uberzahl p, uberzahl
 uberzahl modexp_crt(uberzahl base, uberzahl exp, uberzahl p, uberzahl q);
 
 uberzahl modexp_mm_crt(uberzahl base, uberzahl exp, uberzahl p, uberzahl q);
+
+//function next_prime is weird..so I made my own prime generator
+uberzahl gen_prime_k(mediumType bits, unsigned int accuracy = 50);
+
+//used to exponent and base generation
+uberzahl rand_n(mediumType bits);
+
+class timer{
+public:
+	timer();
+	~timer();
+	void start();
+	void stop();
+	double get_time();
+	void reset();
+private:
+	bool initialized;
+	high_resolution_clock::time_point t1, t2;
+};
+
+
 
 #endif

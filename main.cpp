@@ -1,11 +1,35 @@
 #include <iostream>
 #include <cstdlib>
+#include <ctime>
 #include "impl.h"
 
 using namespace std;
 
 
 
+int main(){
+	timer t;
+	uberzahl p = gen_prime_k(50), q = gen_prime_k(50);
+	uberzahl base = rand_n(15), exp = rand_n(200);
+	uberzahl n = p*q;
+	cout << p << endl;
+	cout << q << endl;
+	cout << base << endl;
+	cout << exp << endl;
+	//t.start();
+	cout << modexp(base,exp,n) << endl;
+	cout << modexp_crt(base,exp,p,q) << endl;
+	cout << modexp_mm(base,exp,n) << endl;
+	//t.stop();
+	//cout << t.get_time() << endl;
+
+
+
+	return 0;
+}
+
+//some legacy code below
+/*
 int main(){
 
 	//sage: n=881*883
@@ -46,5 +70,8 @@ int main(){
 	cout << modexp_mm_crt(base,e2,p,q) << endl;
 	cout << modexp_mm_crt(base,e3,p,q) << endl;
 
+	//srand(time(NULL));
+	//cout << gen_prime_k(50) << endl;
+
 	return 0;
-}
+}*/
