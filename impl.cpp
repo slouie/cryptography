@@ -17,7 +17,6 @@ uberzahl modexp(uberzahl base, uberzahl exp, uberzahl n){
 	return z;
 }
 
-
 //returns next power of 2.
 uberzahl next_power(uberzahl n){
 	uberzahl retval(1);
@@ -34,25 +33,24 @@ uberzahl montgomery_reduction(const uberzahl & T, const uberzahl  & M, const ube
 }
 
 //we don't have to bother with making sure that gcd(R,M) == 1 since M is odd.
-uberzahl modexp_mm(uberzahl base, uberzahl exp, uberzahl M){
-	uberzahl R, Mprime;
-	smallType Rbits;
-
-	R = next_power(M);
-	Rbits = R.bitLength();
-	Mprime = (R-M.inverse(R));
-
-	uberzahl z("1");
-	uberzahl t("2");
-	uberzahl Rsq = modexp(R,t,M);
+uberzahl modexp_mm(mm_t & mm, uberzahl base, uberzahl exp, uberzahl M){
+	if(!mm.initialized){
+		mm.R = next_power(M);
+		mm.Rbits = mm.R.bitLength();
+		mm.Mprime = (mm.R-M.inverse(mm.R));
+		uberzahl z("1");
+		uberzahl t("2");
+		mm.Rsq = modexp(mm.R,t,M);
+		mm.z_init = mm.R % M;
+		mm.initialized = true;
+	}
 
 	//convert into Montgomery space
-
-	z = R % M;
+	uberzahl z = mm.z_init;
 	//assert(base * Rsq < M*R);
 
 	//According to Piazza post we don't even need to calculate the residues with mod
-	base = montgomery_reduction(base * Rsq, M, Mprime, Rbits, R);
+	base = montgomery_reduction(base * mm.Rsq, M, mm.Mprime, mm.Rbits, mm.R);
 	//base = base * R % M;
 
 	mediumType i = exp.bitLength() - 1;
@@ -60,33 +58,43 @@ uberzahl modexp_mm(uberzahl base, uberzahl exp, uberzahl M){
 
 	while(i >= 0) {
 
-		z = montgomery_reduction(z * z, M, Mprime, Rbits, R);
+		z = montgomery_reduction(z * z, M, mm.Mprime, mm.Rbits, mm.R);
 		if(exp.bit(i) == 1){
-			z = montgomery_reduction(z * base , M, Mprime, Rbits, R);
+			z = montgomery_reduction(z * base , M, mm.Mprime, mm.Rbits, mm.R);
 		}
 		if(i == 0)
 			break;
 		i -= 1;
 	}
-	return montgomery_reduction(z, M, Mprime, Rbits, R);
+	return montgomery_reduction(z, M, mm.Mprime, mm.Rbits, mm.R);
 }
 
-uberzahl crt_helper(bool type, uberzahl base, uberzahl exp, uberzahl p, uberzahl q){
+uberzahl crt_helper(bool type, mm_t & mm, uberzahl base, uberzahl exp, uberzahl p, uberzahl q, uberzahl q_inverse){
 	if(type == CLASSIC)
-		return modexp(base, exp % (p-1), p) * q * q.inverse(p);
+		return modexp(base, exp % (p-1), p) * q * q_inverse;
 	else if(type == MONTGOMERY)
-		return modexp_mm(base, exp % (p-1),p) * q * q.inverse(p);
-
+		return modexp_mm(mm, base, exp % (p-1),p) * q * q_inverse;
 	//Only types allowed are CLASSIC and MONTGOMERY!
 	assert(0);
 }
 
-uberzahl modexp_crt(uberzahl base, uberzahl exp, uberzahl p, uberzahl q){
-	return ( crt_helper(CLASSIC,base,exp,p,q) + crt_helper(CLASSIC, base, exp, q, p) ) % (p * q);
+uberzahl modexp_crt(crt_t & crt, uberzahl base,  uberzahl exp, uberzahl p, uberzahl q){
+    mm_t mm;
+    if(!crt.initialized){
+    	crt.p_inverse = p.inverse(q);
+    	crt.q_inverse = q.inverse(p);
+    	crt.initialized = true;
+    }
+	return ( crt_helper(CLASSIC,mm, base,exp,p,q,crt.q_inverse) + crt_helper(CLASSIC, mm, base, exp, q, p, crt.p_inverse) ) % (p * q);
 }
 
-uberzahl modexp_mm_crt(uberzahl base, uberzahl exp, uberzahl p, uberzahl q){
-	return ( crt_helper(MONTGOMERY,base,exp,p,q) + crt_helper(MONTGOMERY, base, exp, q, p ) ) % (p * q);
+uberzahl modexp_mm_crt(mm_t & mm1, mm_t & mm2, crt_t & crt, uberzahl base, uberzahl exp, uberzahl p, uberzahl q){
+	if(!crt.initialized){
+		crt.p_inverse = p.inverse(q);
+    	crt.q_inverse = q.inverse(p);
+    	crt.initialized = true;
+	}
+	return ( crt_helper(MONTGOMERY,mm1,base,exp,p,q, crt.q_inverse) + crt_helper(MONTGOMERY, mm2, base, exp, q, p, crt.p_inverse) ) % (p * q);
 }
 
 uberzahl gen_prime_k(mediumType bits, unsigned int accuracy){
@@ -129,3 +137,4 @@ double timer::get_time(){
 		return 0;
 	return (duration_cast<duration< double > > (t2 - t1)).count();
 }
+

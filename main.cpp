@@ -9,28 +9,39 @@ using namespace std;
 
 int main(){
 
-
+	//srand(time(NULL));
 
 	timer t;
 	uberzahl p = gen_prime_k(64), q = gen_prime_k(64);
-	uberzahl base = rand_n(15), exp = rand_n(1000);
+	uberzahl base = gen_prime_k(15), exp = rand_n(1000);
 	uberzahl n = p*q;
+
+
+	mm_t mm, mm_crt1, mm_crt2;
+	crt_t crt, crt_mm;
+
+	int num_trials = 20;
+
 	t.start();
-	cout << modexp(base,exp,n) << endl;
+	for(int i = 0; i < num_trials;++i)
+		modexp(base,exp,n);
 	t.stop();
-	cout << t.get_time() << endl;
+	cout << t.get_time()/double(num_trials) << endl;
 	t.start();
-	cout << modexp_crt(base,exp,p,q) << endl;
+	for(int i = 0; i < num_trials;++i)
+		modexp_crt(crt,base,exp,p,q);
 	t.stop();
-	cout << t.get_time() << endl;
+	cout << t.get_time()/double(num_trials) << endl;
 	t.start();
-	cout << modexp_mm(base,exp,n) << endl;
+	for(int i = 0; i < num_trials;++i)
+		modexp_mm(mm,base,exp,n);
 	t.stop();
-	cout << t.get_time() << endl;
+	cout << t.get_time()/double(num_trials) << endl;
 	t.start();
-	cout << modexp_mm_crt(base,exp,p,q) << endl;
+	for(int i =0; i < num_trials;++i)
+		modexp_mm_crt(mm_crt1, mm_crt2, crt_mm,base,exp,p,q);
 	t.stop();
-	cout << t.get_time() << endl;
+	cout << t.get_time()/double(num_trials) << endl;
 
 
 	return 0;

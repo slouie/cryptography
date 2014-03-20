@@ -1,5 +1,5 @@
 CC = g++
-CFLAGS = -std=c++11 -g -Wno-deprecated
+CFLAGS = -std=c++11 -Wno-deprecated
 
 all:
 	$(CC) main.cpp impl.cpp uberzahl/uberzahl.cpp $(CFLAGS) -o main.exec
