@@ -9,6 +9,10 @@ using namespace std;
 #define CLASSIC 0
 #define MONTGOMERY 1
 
+//gcd(2^i,2k+1) = 1
+//product of two odd numbers is odd
+//(2k+1)(2p+1) = 4kp + 2k + 2p + 1 = 2(2kp + k + p) + 1 = odd
+
 uberzahl modexp(uberzahl base, uberzahl exp, uberzahl n);
 
 //returns next power of 2.

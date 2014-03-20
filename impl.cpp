@@ -42,18 +42,26 @@ uberzahl modexp_mm(uberzahl base, uberzahl exp, uberzahl M){
 	Rbits = R.bitLength();
 	Mprime = (R-M.inverse(R));
 
-	uberzahl z;
+	//uberzahl z;
+	uberzahl z("1");
+	uberzahl t("2");
+	uberzahl Rsq = modexp(R,t,M);
 
 	mediumType i = exp.bitLength() - 1;
 
 	//convert into Montgomery space
+
 	z = R % M;
-	base = base * R % M;
+	assert(base * Rsq < M*R);
+
+	//According to Piazza post we don't even need to calculate the residues with mod
+	base = montgomery_reduction(base * Rsq, M, Mprime, Rbits, R);
+	//base = base * R % M;
 
 	while(i >= 0) {
 		z = montgomery_reduction(z * z, M, Mprime, Rbits, R);
 		if(exp.bit(i) == 1)
-			z = montgomery_reduction(z * base, M, Mprime, Rbits, R);
+			z = montgomery_reduction(z * base , M, Mprime, Rbits, R);
 		if(i == 0)
 			break;
 		i -= 1;
