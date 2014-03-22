@@ -6,9 +6,14 @@
 
 using namespace std;
 
-int main(){
+int main(int argc, char *argv[]){
 	ostringstream out;
-	int num_bits = 256;
+	int num_bits = 128;
+	if(argc > 1){
+		num_bits = atoi(argv[1]);
+		if(num_bits < 0 || num_bits % 2)
+			num_bits = 128;
+	}
 
 	srand(time(NULL));
 
@@ -20,11 +25,11 @@ int main(){
 	mm_t mm, mm_crt1, mm_crt2;
 	crt_t crt, crt_mm;
 
-	int num_trials = 20;
+	int num_trials = 30;
 	timer t1, t2, t3, t4;
 	
 	for(int i = 0; i < num_trials;++i){
-		base = rand_n(num_bits/2 -1), exp = rand_n(num_bits-1);
+		base = rand_n(num_bits-1), exp = rand_n(num_bits-1);
 		t1.start();
 		modexp(base,exp,n);
 		t1.stop(); t1.accumulate();
@@ -41,7 +46,7 @@ int main(){
 		modexp_mm_crt(mm_crt1,mm_crt2, crt_mm, base, exp, p, q);
 		t4.stop(); t4.accumulate();
 	}
-	out << "average run times over " << num_trials << " trials\n";
+	out << "average run times over " << num_trials << " trials with modulus of " << num_bits << "-bits\n";
 	int old_precision = cout.precision();
 	out.precision(10);
 	out << "modexp: " << t1.get_time()/double(num_trials) << '\n';
