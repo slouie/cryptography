@@ -57,11 +57,13 @@ public:
 	~timer();
 	void start();
 	void stop();
+	void accumulate();
 	double get_time();
 	void reset();
 private:
 	bool initialized;
 	high_resolution_clock::time_point t1, t2;
+	milliseconds total;
 };
 
 

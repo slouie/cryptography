@@ -13,7 +13,6 @@ uberzahl modexp(uberzahl base, uberzahl exp, uberzahl n){
 			break;
 		i -= 1;
 	}
-	
 	return z;
 }
 
@@ -41,23 +40,23 @@ uberzahl modexp_mm(mm_t & mm, uberzahl base, uberzahl exp, uberzahl M){
 		uberzahl z("1");
 		uberzahl t("2");
 		mm.Rsq = modexp(mm.R,t,M);
-		mm.z_init = mm.R % M;
+		//mm.z_init = mm.R % M;
+		mm.z_init = montgomery_reduction(mm.Rsq, M, mm.Mprime, mm.Rbits, mm.R);
 		mm.initialized = true;
 	}
 
 	//convert into Montgomery space
 	uberzahl z = mm.z_init;
-	//assert(base * Rsq < M*R);
 
 	//According to Piazza post we don't even need to calculate the residues with mod
-	base = montgomery_reduction(base * mm.Rsq, M, mm.Mprime, mm.Rbits, mm.R);
-	//base = base * R % M;
+	if(base * mm.Rsq < mm.R*M)
+		base = montgomery_reduction(base * mm.Rsq, M, mm.Mprime, mm.Rbits, mm.R);
+	else
+		base = base * mm.R % M;
 
 	mediumType i = exp.bitLength() - 1;
 
-
 	while(i >= 0) {
-
 		z = montgomery_reduction(z * z, M, mm.Mprime, mm.Rbits, mm.R);
 		if(exp.bit(i) == 1){
 			z = montgomery_reduction(z * base , M, mm.Mprime, mm.Rbits, mm.R);
@@ -114,6 +113,7 @@ uberzahl rand_n(mediumType bits){
 
 timer::timer(){
 	initialized = false;
+	total = milliseconds(0);
 }
 
 timer::~timer(){
@@ -121,7 +121,7 @@ timer::~timer(){
 
 void timer::start(){
 	initialized = true;
-	t1  = high_resolution_clock::now();
+	t2 = t1  = high_resolution_clock::now();
 }
 
 void timer::stop(){
@@ -130,11 +130,16 @@ void timer::stop(){
 
 void timer::reset(){
 	initialized = false;
+	total = milliseconds(0);
+}
+
+void timer::accumulate(){
+	total += duration_cast<milliseconds>(t2 - t1);
 }
 
 double timer::get_time(){
 	if(!initialized)
 		return 0;
-	return (duration_cast<duration< double > > (t2 - t1)).count();
+	return total.count();
 }
 
